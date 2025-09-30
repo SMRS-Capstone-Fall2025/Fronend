@@ -1,0 +1,112 @@
+.login-container {
+  display: flex;
+  height: 100vh;
+  font-family: "Inter", sans-serif;
+}
+
+/* Bên trái */
+.login-left {
+  flex: 1;
+  background: whitesmoke;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: blue;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Bên phải */
+.login-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+}
+
+/* Box login */
+.login-box {
+  background:whitesmoke;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+  width: 400px;
+  text-align: center;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: bold;
+  color: blue;
+  margin-bottom: 10px;
+}
+
+h2 {
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: black;
+}
+
+/* Form */
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid whitesmoke;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* Options */
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+
+.form-options a {
+  color: blue;
+  text-decoration: none;
+}
+
+/* Button */
+.btn-login {
+  width: 100%;
+  background: blue;
+  color: whitesmoke;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-login:hover {
+  background: blue;
+}
+
+.no-account {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.no-account a {
+  color:blue;
+  text-decoration: none;
+}
