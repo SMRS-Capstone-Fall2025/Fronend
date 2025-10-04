@@ -1,17 +1,14 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch } from "@fortawesome/free-solid-svg-icons";
-
 import {
   faMagnifyingGlass,
   faRightFromBracket,
 } from "@fortawesome/free-solid-svg-icons";
 import anh1 from "../img/1.webp";
 
-export default function HeaderStudent() {
+export default function HeaderAdmin() {
   return (
     <div className="w-full h-[40px] flex items-center gap-3 px-4">
-      {/* Input Search */}
       <div className="relative flex-1">
         <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
           <FontAwesomeIcon icon={faMagnifyingGlass} />
@@ -23,14 +20,13 @@ export default function HeaderStudent() {
         />
       </div>
 
-      {/* Profile + Logout */}
       <div className="flex items-center gap-2">
         <img
           src={anh1}
           className="w-[24px] h-[24px] rounded-full"
-          alt="Student"
+          alt="Admin"
         />
-        <p className="whitespace-nowrap">Student</p>
+        <p className="whitespace-nowrap">Admin</p>
         <button className="text-gray-600 hover:text-red-500">
           <FontAwesomeIcon icon={faRightFromBracket} />
         </button>
