@@ -176,46 +176,144 @@ export default function MainScreen() {
                   </div>
                 </div>
               </div>
-              <div className="flex space-x-6">
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Status
-                  </label>
-                  <select className="border rounded-lg px-3 py-2 w-40">
-                    <option value="">-- Chọn trạng thái --</option>
-                    <option value="full">Full (Nhóm đã tối đa 5 người)</option>
-                    <option value="find">
-                      Find Member (Nhóm đang 3 người, muốn thêm)
-                    </option>
-                    <option value="paused">
-                      Paused (Nhóm trưởng dừng nhận thành viên)
-                    </option>
-                  </select>
-                </div>
+              <div className="p-6">
+                <table className="min-w-full border border-gray-300 rounded-lg overflow-hidden">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">
+                        Name
+                      </th>
+                      <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">
+                        Member
+                      </th>
+                      <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">
+                        Project
+                      </th>
+                      <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Member
-                  </label>
-                  <select className="border rounded-lg px-3 py-2 w-40">
-                    <option value="">-- Thành viên nhóm --</option>
-                    <option value="1">Nguyễn Văn A</option>
-                    <option value="2">Trần Thị B</option>
-                    <option value="3">Lê Văn C</option>
-                  </select>
-                </div>
+                  <tbody>
+                    {/* Row 1 */}
+                    <tr className="hover:bg-gray-50">
+                      <td className="py-3 px-4 border-b">Nguyen Van A</td>
+                      <td className="py-3 px-4 border-b">
+                        <div className="flex -space-x-2">
+                          {[
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                          ]
+                            .slice(0, 5)
+                            .map((src, index) => (
+                              <img
+                                key={index}
+                                src={src}
+                                alt={`Member ${index + 1}`}
+                                className="w-8 h-8 rounded-full border-2 border-white"
+                              />
+                            ))}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 border-b">AI Research</td>
+                      <td className="py-3 px-4 border-b">
+                        <span className="px-3 py-1 text-sm font-medium text-green-700 bg-green-100 rounded-full">
+                          Done
+                        </span>
+                      </td>
+                    </tr>
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Active
-                  </label>
-                  <select className="border rounded-lg px-3 py-2 w-40">
-                    <option value="">-- Trạng thái --</option>
-                    <option value="empty">Trống (chưa ai pick)</option>
-                    <option value="picked">Đã được chọn</option>
-                    <option value="research">Nghiên cứu làm thêm</option>
-                  </select>
-                </div>
+                    {/* Row 2 */}
+                    <tr className="hover:bg-gray-50">
+                      <td className="py-3 px-4 border-b">Tran Thi B</td>
+                      <td className="py-3 px-4 border-b">
+                        <div className="flex -space-x-2">
+                          {[
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                          ]
+                            .slice(0, 5)
+                            .map((src, index) => (
+                              <img
+                                key={index}
+                                src={src}
+                                alt={`Member ${index + 1}`}
+                                className="w-8 h-8 rounded-full border-2 border-white"
+                              />
+                            ))}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 border-b">Web Platform</td>
+                      <td className="py-3 px-4 border-b">
+                        <span className="px-3 py-1 text-sm font-medium text-yellow-700 bg-yellow-100 rounded-full">
+                          In Progress
+                        </span>
+                      </td>
+                    </tr>
+
+                    {/* Row 3 */}
+                    <tr className="hover:bg-gray-50">
+                      <td className="py-3 px-4 border-b">Le Van C</td>
+                      <td className="py-3 px-4 border-b">
+                        <div className="flex -space-x-2">
+                          {[
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                          ]
+                            .slice(0, 5)
+                            .map((src, index) => (
+                              <img
+                                key={index}
+                                src={src}
+                                alt={`Member ${index + 1}`}
+                                className="w-8 h-8 rounded-full border-2 border-white"
+                              />
+                            ))}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 border-b">Mobile App</td>
+                      <td className="py-3 px-4 border-b">
+                        <span className="px-3 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-full">
+                          Pause
+                        </span>
+                      </td>
+                    </tr>
+
+                    {/* Row 4 */}
+                    <tr className="hover:bg-gray-50">
+                      <td className="py-3 px-4 border-b">Pham D</td>
+                      <td className="py-3 px-4 border-b">
+                        <div className="flex -space-x-2">
+                          {[
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                            "https://scontent.fhan14-3.fna.fbcdn.net/v/t39.30808-6/469536996_1358729488441325_3004502555982336904_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGuGeXBE5-BWQlHJqZkhbfFe5NXCxgWqGB7k1cLGBaoYPATHlXaOhKlUUtAyIDlcaTR3tTafHVipjihCtWgfsyv&_nc_ohc=ESISgEPeznwQ7kNvwE_Kvmj&_nc_oc=Adlxv9UdqyLulO3eMvXMOE1vD_zvAeNT9DK-icRiSs3mGJHEOUBjdDhlSc_6Z4TTReFKg29pcF6WWJzM5AwPUEC5&_nc_zt=23&_nc_ht=scontent.fhan14-3.fna&_nc_gid=zkFYsQznPg8vZhvZNoOTww&oh=00_Afdpyn1omvgKnFbDMzVFtsLvR-FOGredNz4TghJjL2_DwQ&oe=68EADFD8",
+                          ]
+                            .slice(0, 5)
+                            .map((src, index) => (
+                              <img
+                                key={index}
+                                src={src}
+                                alt={`Member ${index + 1}`}
+                                className="w-8 h-8 rounded-full border-2 border-white"
+                              />
+                            ))}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 border-b">System Refactor</td>
+                      <td className="py-3 px-4 border-b">
+                        <span className="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 rounded-full">
+                          Backlog
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
