@@ -10,6 +10,8 @@ import InviteSupervisor from "./page/student/inviteSupervisors";
 import AdminPage from "./page/admin/adminPage";
 import ResearchManagementOfficePage from "./page/researchManagementOffice/researchManagementOfficePage";
 import ListProject from "./page/researchManagementOffice/listProject";
+import SubmitReport from "./page/student/submitReport";
+import StudentProfilePage from "./page/student/studentProfile";
 
 export default function App() {
   return (
@@ -24,6 +26,8 @@ export default function App() {
         <Route path="/adminpage" element={<AdminPage />} />
         <Route path="/researchManagementOfficepage" element={<ResearchManagementOfficePage />} />
         <Route path="/listproject" element={<ListProject />} />
+        <Route path="/submitreport" element={<SubmitReport />} />
+        <Route path="/studentprofile" element={<StudentProfilePage />} />
       </Routes>
     </Router>
   );
