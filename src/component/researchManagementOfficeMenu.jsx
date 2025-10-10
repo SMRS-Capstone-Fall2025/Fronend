@@ -9,9 +9,9 @@ import {
   faUserPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { faNewspaper } from "@fortawesome/free-regular-svg-icons";
-import "./studentMenu.css"; // import file CSS
+import "./researchManagementOfficeMenu.css"; // import file CSS
 
-export default function StudentMenu() {
+export default function ResearchManagementOfficeMenu() {
   return (
     <>
       <div className="flex w-full h-screen bg-pattern">

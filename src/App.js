@@ -3,10 +3,13 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import StudentPage from "./page/student/studentPage";
 import RegisterProject from "./page/student/registerProject";
 import MainScreen from "./page/student/mainScreen";
+import InviteSupervisors from "./page/student/inviteSupervisors";
 import Login from "./page/auth/login";
 import Register from "./page/auth/register";
 import InviteSupervisor from "./page/student/inviteSupervisors";
 import AdminPage from "./page/admin/adminPage";
+import ResearchManagementOfficePage from "./page/researchManagementOffice/researchManagementOfficePage";
+import ListProject from "./page/researchManagementOffice/listProject";
 
 export default function App() {
   return (
@@ -19,6 +22,8 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/invitesupervisiors" element={<InviteSupervisor />} />
         <Route path="/adminpage" element={<AdminPage />} />
+        <Route path="/researchManagementOfficepage" element={<ResearchManagementOfficePage />} />
+        <Route path="/listproject" element={<ListProject />} />
       </Routes>
     </Router>
   );

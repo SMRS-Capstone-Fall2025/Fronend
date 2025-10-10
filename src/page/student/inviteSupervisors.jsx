@@ -64,7 +64,7 @@ export default function InviteSupervisors() {
                 <th className="border border-gray-300 px-4 py-2 text-left">
                   Description
                 </th>
-                <th className="border border-gray-300 px-4 py-2 text-left">
+                <th className="border border-gray-300 px-4 py-2 text-center">
                   Action
                 </th>
               </tr>
@@ -81,9 +81,12 @@ export default function InviteSupervisors() {
                   <td className="border border-gray-300 px-4 py-2">
                     {item.email}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    <button className="px-4 py-1 rounded-md bg-blue-500 text-white font-semibold hover:bg-blue-600">
+                  <td className="border border-gray-300 px-4 py-2 flex justify-center">
+                    <button className="px-4 py-1 rounded-md bg-blue-500 text-white font-semibold hover:bg-blue-600 ">
                       Invite
+                    </button>
+                    <button className="bg-yellow-500 ml-2 text-white px-3 py-1 rounded-md hover:bg-yellow-600 ">
+                      View
                     </button>
                   </td>
                 </tr>
