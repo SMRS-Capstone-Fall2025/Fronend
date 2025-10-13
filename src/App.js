@@ -9,6 +9,8 @@ import AdminPage from "./page/admin/adminPage";
 import ResearchManagementOfficePage from "./page/researchManagementOffice/researchManagementOfficePage";
 import ListProject from "./page/researchManagementOffice/listProject";
 import { MentorProfilePage } from "./page/mentor/MentorProfilePage";
+import SubmitReport from "./page/student/submitReport";
+import StudentProfilePage from "./page/student/studentProfile";
 
 export default function App() {
   return (
@@ -25,6 +27,8 @@ export default function App() {
         <Route path="/listproject" element={<ListProject />} />
 
         <Route path="/mentor/:id" element={<MentorProfilePage />} />
+        <Route path="/submitreport" element={<SubmitReport />} />
+        <Route path="/studentprofile" element={<StudentProfilePage />} />
       </Routes>
     </Router>
   );
