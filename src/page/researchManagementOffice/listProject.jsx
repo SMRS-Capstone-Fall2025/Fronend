@@ -61,29 +61,17 @@ export default function ResearchManagementOffice() {
           <HeaderResearchManagementOffice />
           <div className="w-[95%] mx-auto flex-1 rounded-2xl mt-[20px] p-6 bg-white">
             <div className="flex justify-center">
-              <h1 className="text-xl font-bold mb-6">
-                The list of Supervisor's Ideas
-              </h1>
+              <h1 className="text-xl font-bold mb-6">The list of Supervisor's Ideas</h1>
             </div>
 
             <table className="min-w-full border border-gray-300 rounded-lg overflow-hidden mt-6">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">
-                    Project English Name
-                  </th>
-                  <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">
-                    Project Vietnamese Name
-                  </th>
-                  <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">
-                    Abbreviation
-                  </th>
-                  <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">
-                    Mentor
-                  </th>
-                  <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">
-                    Action
-                  </th>
+                  <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">Project English Name</th>
+                  <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">Project Vietnamese Name</th>
+                  <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">Abbreviation</th>
+                  <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">Mentor</th>
+                  <th className="py-3 px-4 text-left text-gray-700 font-semibold border-b">Action</th>
                 </tr>
               </thead>
 
@@ -91,20 +79,14 @@ export default function ResearchManagementOffice() {
                 {projectList.map((proj) => (
                   <tr key={proj.id} className="hover:bg-gray-50">
                     <td className="py-3 px-4 border-b">{proj.englishName}</td>
-                    <td className="py-3 px-4 border-b">
-                      {proj.vietnameseName}
-                    </td>
+                    <td className="py-3 px-4 border-b">{proj.vietnameseName}</td>
                     <td className="py-3 px-4 border-b">{proj.abbreviation}</td>
                     <td className="py-3 px-4 border-b">{proj.mentor}</td>
                     <td className="py-3 px-4 border-b">
                       {proj.role === "01" ? (
-                        <button className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                          View
-                        </button>
+                        <button className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">View</button>
                       ) : proj.role === "02" ? (
-                        <button className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                          View
-                        </button>
+                        <button className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">View</button>
                       ) : proj.role === "03" ? (
                         <button className="px-3 py-1 bg-indigo-500 text-white rounded-md hover:bg-indigo-600">
                           Request Join
