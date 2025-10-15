@@ -6,6 +6,7 @@ import Login from "./page/auth/login";
 import Register from "./page/auth/register";
 import InviteSupervisor from "./page/student/inviteSupervisors";
 import AdminPage from "./page/admin/adminPage";
+import ManagerPage from "./page/taskManager/managerPage";
 import ResearchManagementOfficePage from "./page/researchManagementOffice/researchManagementOfficePage";
 import ListProject from "./page/researchManagementOffice/listProject";
 import { MentorProfilePage } from "./page/mentor/MentorProfilePage";
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/invitesupervisiors" element={<InviteSupervisor />} />
         <Route path="/adminpage" element={<AdminPage />} />
+        <Route path="/managerpage" element={<ManagerPage />} />
         <Route path="/researchManagementOfficepage" element={<ResearchManagementOfficePage />} />
         <Route path="/listproject" element={<ListProject />} />
 
