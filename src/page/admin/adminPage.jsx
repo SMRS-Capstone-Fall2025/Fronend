@@ -1,6 +1,6 @@
 import React from "react";
-import HeaderAdmin from "../../component/headerAdmin"; // Giữ đúng tên file thật
-import AdminMenu from "../../component/adminMenu"; // import AdminMenu vào
+import HeaderAdmin from "../../component/headerAdmin";
+import AdminMenu from "../../component/adminMenu";
 
 export default function AdminPage() {
   return (
@@ -13,9 +13,7 @@ export default function AdminPage() {
       {/* right content */}
       <div className="w-[80%] mx-auto flex flex-col">
         <headerAdmin />
-        <div className="w-[95%] mx-auto flex-1 rounded-2xl mt-[20px] p-6 bg-white">
-          <h1 className="font-bold text-[25px]">Statistics</h1>
-        </div>
+        <div className="w-[95%] mx-auto flex-1 rounded-2xl mt-[20px] p-6 bg-white"></div>
       </div>
     </div>
   );

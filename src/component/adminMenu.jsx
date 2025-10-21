@@ -54,13 +54,6 @@ export default function AdminMenu() {
               <div className="text-[20px] ml-[12px]">
                 <FontAwesomeIcon icon={faHouseChimney} />
               </div>
-              <div className="text-gray-700">Committee Management</div>
-            </div>
-
-            <div className="flex bg-[#FAFAFA] gap-[10px] h-[50px] items-center">
-              <div className="text-[20px] ml-[12px]">
-                <FontAwesomeIcon icon={faHouseChimney} />
-              </div>
               <div className="text-gray-700">Settings</div>
             </div>
           </div>
