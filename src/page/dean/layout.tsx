@@ -1,33 +1,52 @@
-import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { AppShell } from "@/components/app-shell";
+import Logo from "@/components/logo";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { Notifications } from "@/components/notifications";
+import { Button } from "@/components/ui/button";
+import { LoadingScreen } from "@/components/ui/loading";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { UserNav } from "@/components/user-nav";
+import { useAuth } from "@/contexts/auth-context";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuthAccountStore } from "@/lib/auth-store";
+import type { NavItem } from "@/lib/types";
+import { getDefaultRouteByRole, isRoleAllowed } from "@/lib/utils";
+import { useMeQuery } from "@/services/account/hooks";
 import {
   FolderKanban,
   LayoutDashboard,
   Menu,
-  ShieldCheck,
+  TrendingUp,
   Users2,
 } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
-import type { NavItem } from "@/lib/types";
-import { AppShell } from "@/components/app-shell";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { MobileBottomNav } from "@/components/mobile-bottom-nav";
-import { UserNav } from "@/components/user-nav";
-import { Notifications } from "@/components/notifications";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import Logo from "@/components/logo";
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const deanNavItems: NavItem[] = [
-  { title: "Tổng quan", href: "/dean/dashboard", icon: LayoutDashboard },
-  { title: "Hội đồng", href: "/dean/councils", icon: Users2 },
-  { title: "Dự án", href: "/dean/projects", icon: FolderKanban },
+  {
+    title: "Tổng quan",
+    href: "/dean/dashboard",
+    icon: LayoutDashboard,
+    group: "Tổng quan",
+  },
+  { title: "Hội đồng", href: "/dean/councils", icon: Users2, group: "Quản lý" },
+  {
+    title: "Dự án",
+    href: "/dean/projects",
+    icon: FolderKanban,
+    group: "Quản lý",
+  },
+  {
+    title: "Nhóm hướng dẫn",
+    href: "/dean/mentor-projects-performance",
+    icon: TrendingUp,
+    group: "Thống kê",
+  },
 ];
 
 const getPageTitle = (pathname: string) => {
   const item = deanNavItems.find((entry) => pathname.startsWith(entry.href));
-  return item?.title ?? "Trưởng khoa";
+  return item?.title ?? "Trưởng bộ môn";
 };
 
 export default function DeanLayout({
@@ -39,39 +58,47 @@ export default function DeanLayout({
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const account = useAuthAccountStore((s) => s.account);
+
+  const token = localStorage.getItem("token");
+  const { isLoading: meLoading } = useMeQuery({
+    enabled: Boolean(token),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   useEffect(() => {
-    if (loading) return;
 
-    // const token = localStorage.getItem("token");
-    // if (!token || !user) {
-    //   navigate("/login", { replace: true });
-    //   return;
-    // }
+    if (loading || meLoading) return;
 
-    // if (user.role !== "dean") {
-    //   navigate(`/${user.role}/dashboard`, { replace: true });
-    // }
-  }, [loading, user, navigate]);
+    if (!token || !user) {
+      navigate("/login", { replace: true });
+      return;
+    }
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <Skeleton className="h-12 w-12 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-[240px]" />
-            <Skeleton className="h-4 w-[200px]" />
-          </div>
-        </div>
-      </div>
-    );
+    const roleFromAccount = account?.role;
+    const rawRole = roleFromAccount;
+
+    if (!isRoleAllowed(rawRole, location.pathname)) {
+      const defaultRoute = getDefaultRouteByRole(rawRole);
+      console.warn("[DeanLayout] Redirecting:", {
+        rawRole,
+        expectedRole: "dean",
+        defaultRoute,
+      });
+      navigate(defaultRoute, { replace: true });
+      return;
+    }
+  }, [loading, meLoading, user, navigate, location.pathname, account, token]);
+
+  if (loading || meLoading) {
+    return <LoadingScreen message="Đang tải dữ liệu..." />;
   }
 
   if (isMobile) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
-        <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
+        <header className="sticky top-0 z-40 border-b border-border/50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm">
           <div className="flex h-14 items-center justify-between px-4">
             <h1 className="text-base font-semibold">
               {getPageTitle(location.pathname)}
@@ -83,7 +110,9 @@ export default function DeanLayout({
           </div>
         </header>
 
-        <main className="flex-1 p-4 pb-20">{children}</main>
+        <main className="flex-1 p-4 pb-20">
+          <div className="container mx-auto max-w-7xl">{children}</div>
+        </main>
 
         <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background md:hidden">
           <div className="flex h-16 items-center justify-around px-2">
