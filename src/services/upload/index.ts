@@ -1,11 +1,2 @@
-export * from "./account";
-export * from "./admin-stats";
-export * from "./council";
-export * from "./dean-stats";
-export * from "./major";
-export * from "./project";
-export * from "./project-member";
-export * from "./publication";
-export { httpQueryKeys } from "./query-keys";
-export * from "./types";
-export * from "./upload";
+export * from "./service";
+export * from "./hooks";
