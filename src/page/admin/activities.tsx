@@ -58,10 +58,7 @@ const getActivityIcon = (type: string) => {
 };
 
 function AdminActivitiesPage() {
-  const pagination = usePagination({
-    initialPage: 1,
-    initialPageSize: 5,
-  });
+  const pagination = usePagination({ initialPage: 1, initialPageSize: 5 });
 
   const {
     data: activitiesPage,

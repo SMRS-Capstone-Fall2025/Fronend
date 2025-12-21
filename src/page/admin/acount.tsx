@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import AdminLayout from "./layout";
 import {
   Card,
@@ -14,49 +13,30 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
+import { getErrorMessage } from "@/lib/utils";
+import {
+  useUpdateAccountMutation,
+  useChangePasswordMutation,
+} from "@/services/account";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, Workflow } from "lucide-react";
+import { ShieldCheck, Workflow, UserCircle } from "lucide-react";
+import { ImageUpload } from "@/components/upload/image-upload";
+import {
+  adminProfileSchema,
+  adminSecuritySchema,
+  type AdminProfileFormValues,
+  type AdminSecurityFormValues,
+} from "@/lib/validations/profile";
 
-const profileSchema = z.object({
-  fullName: z.string().trim().min(2, "Vui lòng nhập họ và tên"),
-  email: z.string().trim().email("Email không hợp lệ"),
-  phone: z
-    .string()
-    .trim()
-    .refine(
-      (value) => value === "" || /^\+?\d{9,15}$/.test(value),
-      "Số điện thoại không hợp lệ"
-    ),
-  department: z.string().trim().max(120, "Phòng ban tối đa 120 ký tự"),
-  notes: z.string().trim().max(200, "Ghi chú tối đa 200 ký tự"),
-  avatar: z
-    .string()
-    .trim()
-    .refine(
-      (value) => value === "" || /^https?:\/\//.test(value),
-      "Đường dẫn ảnh phải bắt đầu bằng http hoặc https"
-    ),
-});
+type ProfileFormValues = AdminProfileFormValues;
+type SecurityFormValues = AdminSecurityFormValues;
 
-type ProfileFormValues = z.infer<typeof profileSchema>;
-
-const securitySchema = z
-  .object({
-    currentPassword: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
-    newPassword: z.string().min(6, "Mật khẩu mới tối thiểu 6 ký tự"),
-    confirmPassword: z.string().min(6, "Vui lòng xác nhận mật khẩu mới"),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "Mật khẩu xác nhận không khớp",
-  });
-
-type SecurityFormValues = z.infer<typeof securitySchema>;
+const profileSchema = adminProfileSchema;
+const securitySchema = adminSecuritySchema;
 
 type PreferenceState = {
   systemAlerts: boolean;
@@ -70,18 +50,6 @@ type ActivityItem = {
   description: string;
   timestamp: string;
 };
-
-function getAvatarFallback(name: string | undefined) {
-  if (!name) {
-    return "AD";
-  }
-  const parts = name.trim().split(/\s+/);
-  const initials = parts
-    .slice(0, 2)
-    .map((part) => part[0] ?? "")
-    .join("");
-  return initials.toUpperCase() || "AD";
-}
 
 const activityLogs: ActivityItem[] = [
   {
@@ -137,6 +105,7 @@ function AdminAccountPage() {
     formState: { errors, isSubmitting },
     reset,
     watch,
+    setValue,
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -155,7 +124,7 @@ function AdminAccountPage() {
         ...current,
         fullName: user.name,
         email: user.email,
-        avatar: current.avatar || user.avatar || "",
+        avatar: user.avatar || current.avatar || "",
       }));
     }
   }, [user, reset]);
@@ -171,16 +140,37 @@ function AdminAccountPage() {
     setPreferences((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const updateAccountMutation = useUpdateAccountMutation({
+    onSuccess: (data) => {
+      const updatedAvatar = data.data?.avatar ?? null;
+      if (updatedAvatar !== undefined) {
+        setValue("avatar", updatedAvatar || "", { shouldDirty: false });
+      }
+      toast({
+        title: "Đã lưu thông tin",
+        description: "Hồ sơ quản trị viên đã được cập nhật.",
+        variant: "success",
+      });
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: "Cập nhật hồ sơ thất bại",
+        description: getErrorMessage(
+          error,
+          "Đã có lỗi xảy ra khi cập nhật hồ sơ. Vui lòng thử lại."
+        ),
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmitProfile = async (values: ProfileFormValues) => {
-    localStorage.setItem("adminAccountProfile", JSON.stringify(values));
-    toast({
-      title: "Đã lưu thông tin",
-      description: "Hồ sơ quản trị viên đã được cập nhật.",
-      variant: "success",
+    await updateAccountMutation.mutateAsync({
+      name: values.fullName,
+      phone: values.phone || null,
+      avatar: values.avatar || null,
     });
   };
-
-  const avatarUrl = watch("avatar")?.trim() || user?.avatar || "";
 
   const {
     register: registerSecurity,
@@ -196,207 +186,248 @@ function AdminAccountPage() {
     },
   });
 
-  const onSubmitSecurity = async (_values: SecurityFormValues) => {
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    resetSecurity();
-    toast({
-      title: "Đổi mật khẩu thành công",
-      description: "Mật khẩu quản trị viên đã được cập nhật.",
-      variant: "success",
+  const changePasswordMutation = useChangePasswordMutation({
+    onSuccess: () => {
+      resetSecurity();
+      toast({
+        title: "Đổi mật khẩu thành công",
+        description: "Mật khẩu quản trị viên đã được cập nhật.",
+        variant: "success",
+      });
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: "Đổi mật khẩu thất bại",
+        description: getErrorMessage(
+          error,
+          "Đã có lỗi xảy ra khi đổi mật khẩu. Vui lòng thử lại."
+        ),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmitSecurity = async (values: SecurityFormValues) => {
+    await changePasswordMutation.mutateAsync({
+      oldPassword: values.currentPassword,
+      newPassword: values.newPassword,
     });
   };
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Hồ sơ quản trị viên</CardTitle>
-            <CardDescription>
-              Quản lý thông tin tài khoản để đảm bảo liên lạc thông suốt.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form
-              onSubmit={handleSubmit(onSubmitProfile)}
-              className="space-y-6"
-            >
-              <div className="flex items-start gap-4">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={avatarUrl} alt={user?.name} />
-                  <AvatarFallback>
-                    {getAvatarFallback(user?.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="avatar">Ảnh đại diện</Label>
-                  <Input
-                    id="avatar"
-                    placeholder="https://..."
-                    {...register("avatar")}
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
+            <UserCircle className="h-7 w-7 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              Hồ sơ quản trị viên
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Quản lý thông tin tài khoản và cài đặt hệ thống
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Hồ sơ quản trị viên</CardTitle>
+              <CardDescription>
+                Quản lý thông tin tài khoản để đảm bảo liên lạc thông suốt.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form
+                onSubmit={handleSubmit(onSubmitProfile)}
+                className="space-y-6"
+              >
+                <div className="space-y-2">
+                  <ImageUpload
+                    value={watch("avatar")}
+                    onChange={(url) =>
+                      setValue("avatar", url || "", { shouldDirty: true })
+                    }
+                    onUploadSuccess={async (url) => {
+                      await updateAccountMutation.mutateAsync({
+                        name: watch("fullName"),
+                        phone: watch("phone") || null,
+                        avatar: url || null,
+                      });
+                    }}
                     disabled={isSubmitting}
+                    label="Ảnh đại diện"
+                    description="Tải lên ảnh đại diện của bạn"
                   />
-                  {errors.avatar && (
+                </div>
+
+                <Separator />
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Họ và tên</Label>
+                    <Input
+                      id="fullName"
+                      placeholder="Nguyễn Văn A"
+                      {...register("fullName")}
+                      disabled={isSubmitting}
+                    />
+                    {errors.fullName && (
+                      <p className="text-sm text-destructive">
+                        {errors.fullName.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="admin@example.com"
+                      {...register("email")}
+                      disabled
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Email được dùng để đăng nhập và không thể thay đổi.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Số điện thoại</Label>
+                    <Input
+                      id="phone"
+                      placeholder="0912345678"
+                      {...register("phone")}
+                      disabled={isSubmitting}
+                    />
+                    {errors.phone && (
+                      <p className="text-sm text-destructive">
+                        {errors.phone.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="department">Phòng ban</Label>
+                    <Input
+                      id="department"
+                      placeholder="Phòng đào tạo"
+                      {...register("department")}
+                      disabled={isSubmitting}
+                    />
+                    {errors.department && (
+                      <p className="text-sm text-destructive">
+                        {errors.department.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Ghi chú nội bộ</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Thông tin quan trọng cần lưu ý..."
+                    {...register("notes")}
+                    disabled={isSubmitting}
+                    className="min-h-[120px]"
+                  />
+                  {errors.notes && (
                     <p className="text-sm text-destructive">
-                      {errors.avatar.message}
+                      {errors.notes.message}
                     </p>
                   )}
-                  <p className="text-xs text-muted-foreground">
-                    Dán đường dẫn ảnh để cập nhật avatar hiển thị.
-                  </p>
                 </div>
-              </div>
 
-              <Separator />
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
 
-              <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Thiết lập bảo mật</CardTitle>
+              <CardDescription>
+                Thiết lập mật khẩu mạnh và các tùy chọn bảo mật nâng cao.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form
+                onSubmit={handleSecuritySubmit(onSubmitSecurity)}
+                className="space-y-4"
+              >
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Họ và tên</Label>
+                  <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
                   <Input
-                    id="fullName"
-                    placeholder="Nguyễn Văn A"
-                    {...register("fullName")}
-                    disabled={isSubmitting}
+                    id="currentPassword"
+                    type="password"
+                    {...registerSecurity("currentPassword")}
+                    disabled={
+                      isSecuritySubmitting || changePasswordMutation.isPending
+                    }
                   />
-                  {errors.fullName && (
+                  {securityErrors.currentPassword && (
                     <p className="text-sm text-destructive">
-                      {errors.fullName.message}
+                      {securityErrors.currentPassword.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="newPassword">Mật khẩu mới</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="admin@example.com"
-                    {...register("email")}
-                    disabled
+                    id="newPassword"
+                    type="password"
+                    {...registerSecurity("newPassword")}
+                    disabled={
+                      isSecuritySubmitting || changePasswordMutation.isPending
+                    }
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Email được dùng để đăng nhập và không thể thay đổi.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Số điện thoại</Label>
-                  <Input
-                    id="phone"
-                    placeholder="0912345678"
-                    {...register("phone")}
-                    disabled={isSubmitting}
-                  />
-                  {errors.phone && (
+                  {securityErrors.newPassword && (
                     <p className="text-sm text-destructive">
-                      {errors.phone.message}
+                      {securityErrors.newPassword.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="department">Phòng ban</Label>
+                  <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
                   <Input
-                    id="department"
-                    placeholder="Phòng đào tạo"
-                    {...register("department")}
-                    disabled={isSubmitting}
+                    id="confirmPassword"
+                    type="password"
+                    {...registerSecurity("confirmPassword")}
+                    disabled={
+                      isSecuritySubmitting || changePasswordMutation.isPending
+                    }
                   />
-                  {errors.department && (
+                  {securityErrors.confirmPassword && (
                     <p className="text-sm text-destructive">
-                      {errors.department.message}
+                      {securityErrors.confirmPassword.message}
                     </p>
                   )}
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Ghi chú nội bộ</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Thông tin quan trọng cần lưu ý..."
-                  {...register("notes")}
-                  disabled={isSubmitting}
-                  className="min-h-[120px]"
-                />
-                {errors.notes && (
-                  <p className="text-sm text-destructive">
-                    {errors.notes.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex justify-end">
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Thiết lập bảo mật</CardTitle>
-            <CardDescription>
-              Thiết lập mật khẩu mạnh và các tùy chọn bảo mật nâng cao.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form
-              onSubmit={handleSecuritySubmit(onSubmitSecurity)}
-              className="space-y-4"
-            >
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  {...registerSecurity("currentPassword")}
-                  disabled={isSecuritySubmitting}
-                />
-                {securityErrors.currentPassword && (
-                  <p className="text-sm text-destructive">
-                    {securityErrors.currentPassword.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">Mật khẩu mới</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  {...registerSecurity("newPassword")}
-                  disabled={isSecuritySubmitting}
-                />
-                {securityErrors.newPassword && (
-                  <p className="text-sm text-destructive">
-                    {securityErrors.newPassword.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  {...registerSecurity("confirmPassword")}
-                  disabled={isSecuritySubmitting}
-                />
-                {securityErrors.confirmPassword && (
-                  <p className="text-sm text-destructive">
-                    {securityErrors.confirmPassword.message}
-                  </p>
-                )}
-              </div>
-              <div className="flex justify-end">
-                <Button type="submit" disabled={isSecuritySubmitting}>
-                  {isSecuritySubmitting ? "Đang cập nhật..." : "Đổi mật khẩu"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+                <div className="flex justify-end">
+                  <Button
+                    type="submit"
+                    disabled={
+                      isSecuritySubmitting || changePasswordMutation.isPending
+                    }
+                  >
+                    {isSecuritySubmitting || changePasswordMutation.isPending
+                      ? "Đang cập nhật..."
+                      : "Đổi mật khẩu"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="space-y-6">
@@ -490,7 +521,7 @@ function AdminAccountPage() {
                 <span className="text-sm text-muted-foreground">
                   Cấu hình hệ thống
                 </span>
-                <Badge variant="outline">Đang xem xét</Badge>
+                <Badge variant="outline">Đang chấm điểm</Badge>
               </div>
             </div>
           </CardContent>
