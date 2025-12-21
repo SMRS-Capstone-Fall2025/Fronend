@@ -137,6 +137,7 @@ export async function registerUser(
       .toString(36)
       .slice(2, 11)}`;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userDataWithoutPassword } = data;
 
     console.log("✅ User registration successful:", { userId });
