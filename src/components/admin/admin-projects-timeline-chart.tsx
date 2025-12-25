@@ -77,7 +77,7 @@ export function AdminProjectsTimelineChart({
         <CardTitle>Xu hướng tạo/hoàn thành dự án</CardTitle>
       </CardHeader>
       <CardContent className="pb-4 mt-4">
-        <div className="w-full overflow-x-auto">
+        <div className="w-full overflow-x-hidden">
           <ChartContainer
             config={chartConfig}
             className="h-[300px] w-full min-w-[500px] min-h-[250px]"

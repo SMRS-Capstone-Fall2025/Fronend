@@ -66,7 +66,6 @@ export function AdminUsersByRoleChart({
   }
 
   const chartData = Object.entries(data).map(([key, value]) => {
-
     const normalizedKey =
       Object.keys(ROLE_COLORS).find(
         (k) => k.toLowerCase() === key.toLowerCase()
@@ -86,8 +85,8 @@ export function AdminUsersByRoleChart({
       <CardHeader>
         <CardTitle>Phân bố người dùng theo vai trò</CardTitle>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="h-[240px]">
+      <CardContent className="flex flex-col items-center">
+        <ChartContainer config={chartConfig} className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <ChartTooltip
@@ -137,17 +136,15 @@ export function AdminUsersByRoleChart({
           {chartData.map((item, index) => {
             const percentage = total > 0 ? (item.value / total) * 100 : 0;
             return (
-              <div
-                key={index}
-                className="flex items-center gap-2 text-xs"
-              >
+              <div key={index} className="flex items-center gap-2 text-xs">
                 <div
                   className="h-3 w-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: item.fill }}
                 />
                 <span className="text-muted-foreground">{item.name}</span>
                 <span className="font-medium text-foreground">
-                  ({item.value.toLocaleString("vi-VN")} - {percentage.toFixed(1)}%)
+                  ({item.value.toLocaleString("vi-VN")} -{" "}
+                  {percentage.toFixed(1)}%)
                 </span>
               </div>
             );

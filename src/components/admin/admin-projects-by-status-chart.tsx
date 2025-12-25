@@ -16,6 +16,9 @@ const STATUS_COLORS: Record<string, string> = {
   Completed: "#8b5cf6",
   Cancelled: "#6b7280",
   Archived: "#9ca3af",
+  RevisionRequired: "#f59e0b",
+  Scored: "#a855f7",
+  InReview: "#f59e0b",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -25,7 +28,10 @@ const STATUS_LABELS: Record<string, string> = {
   InProgress: "Đang thực hiện",
   Completed: "Hoàn thành",
   Cancelled: "Đã hủy",
-  Archived: "Đã lưu trữ",
+  Archived: "Đang lưu trữ",
+  RevisionRequired: "Yêu cầu sửa đổi",
+  Scored: "Đã chấm điểm",
+  InReview: "Đang chấm điểm",
 };
 
 const chartConfig = Object.entries(STATUS_COLORS).reduce(
@@ -72,16 +78,18 @@ export function AdminProjectsByStatusChart({
   }
 
   const chartData = Object.entries(data).map(([key, value]) => {
-
+    const keyFormat = key.split("_").join("").toLowerCase();
     const normalizedKey =
       Object.keys(STATUS_COLORS).find(
-        (k) => k.toLowerCase() === key.toLowerCase()
-      ) || key;
+        (k) => k.toLowerCase() === keyFormat.toLowerCase()
+      ) || keyFormat;
 
     return {
-      name: STATUS_LABELS[normalizedKey] || STATUS_LABELS[key] || key,
+      name:
+        STATUS_LABELS[normalizedKey] || STATUS_LABELS[keyFormat] || keyFormat,
       value: Number(value),
-      fill: STATUS_COLORS[normalizedKey] || STATUS_COLORS[key] || "#6b7280",
+      fill:
+        STATUS_COLORS[normalizedKey] || STATUS_COLORS[keyFormat] || "#6b7280",
     };
   });
 
@@ -92,8 +100,8 @@ export function AdminProjectsByStatusChart({
       <CardHeader>
         <CardTitle>Phân bố dự án theo trạng thái</CardTitle>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="h-[240px]">
+      <CardContent className="flex flex-col items-center">
+        <ChartContainer config={chartConfig} className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <ChartTooltip
@@ -143,17 +151,15 @@ export function AdminProjectsByStatusChart({
           {chartData.map((item, index) => {
             const percentage = total > 0 ? (item.value / total) * 100 : 0;
             return (
-              <div
-                key={index}
-                className="flex items-center gap-2 text-xs"
-              >
+              <div key={index} className="flex items-center gap-2 text-xs">
                 <div
                   className="h-3 w-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: item.fill }}
                 />
                 <span className="text-muted-foreground">{item.name}</span>
                 <span className="font-medium text-foreground">
-                  ({item.value.toLocaleString("vi-VN")} - {percentage.toFixed(1)}%)
+                  ({item.value.toLocaleString("vi-VN")} -{" "}
+                  {percentage.toFixed(1)}%)
                 </span>
               </div>
             );
