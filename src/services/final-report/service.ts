@@ -6,10 +6,9 @@ import type {
   MentorReviewListResult,
   ProjectReviewListResponse,
   ProjectReviewListResult,
-} from "../../../../../201/scientific-research (3)/scientific-research/src/services/types";
+} from "../types/final-report";
 
 export const finalReportService = {
-
   async list(params?: {
     pageNumber?: number;
     pageSize?: number;

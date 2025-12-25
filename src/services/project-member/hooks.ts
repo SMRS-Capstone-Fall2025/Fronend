@@ -118,3 +118,33 @@ export const useRejectProjectInvitationMutation = (
     ...restOptions,
   });
 };
+
+type DeleteProjectMemberVariables = {
+  readonly projectId: number | string;
+  readonly memberId: number | string;
+};
+
+export const useDeleteProjectMemberMutation = (
+  options?: UseMutationOptions<void, Error, DeleteProjectMemberVariables>
+) => {
+  const queryClient = useQueryClient();
+  const { onSuccess, ...restOptions } = options ?? {};
+
+  return useMutation<void, Error, DeleteProjectMemberVariables>({
+    mutationFn: ({ projectId, memberId }) =>
+      projectMemberService.deleteMember(projectId, memberId),
+    async onSuccess(data, variables, context) {
+      await queryClient.invalidateQueries({
+        queryKey: projectMemberQueryKeys.all,
+      });
+      // Also invalidate project queries to refresh project details
+      await queryClient.invalidateQueries({
+        queryKey: ["projects"],
+      });
+      if (onSuccess) {
+        await onSuccess(data, variables, context);
+      }
+    },
+    ...restOptions,
+  });
+};

@@ -2,10 +2,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDateDisplay } from "@/lib/date-utils";
-import { TASK_STATUS_STYLES } from "@/lib/task-board";
-import { cn } from "@/lib/utils";
 import type { TaskDto } from "@/services/types/task";
-import { CalendarClock, Clock, UserRound } from "lucide-react";
+import { CalendarClock, Clock } from "lucide-react";
 
 interface TaskCardProps {
   task: TaskDto;
@@ -13,9 +11,6 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, onSelect }: TaskCardProps) {
-  const statusStyle =
-    TASK_STATUS_STYLES[task.status ?? "IN_PROGRESS"] ??
-    TASK_STATUS_STYLES.IN_PROGRESS;
   const deadlineLabel = formatDateDisplay(task.deadline);
   const assigneeName = task.assignedTo?.name ?? null;
   const getInitials = (name: string) => {

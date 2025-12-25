@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
+import { statusToLabel } from "@/components/projects/ProjectsTable";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
 interface StudentMyProjectsStatusChartProps {
@@ -17,20 +18,11 @@ const STATUS_COLORS: Record<string, string> = {
   InReview: "#8b5cf6",
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  Pending: "Chờ duyệt",
-  Approved: "Đã duyệt",
-  Rejected: "Từ chối",
-  InProgress: "Đang thực hiện",
-  Completed: "Hoàn thành",
-  InReview: "Đang xem xét",
-};
-
 const chartConfig = Object.entries(STATUS_COLORS).reduce(
   (acc, [key, color]) => ({
     ...acc,
     [key.toLowerCase()]: {
-      label: STATUS_LABELS[key] || key,
+      label: statusToLabel(key),
       color,
     },
   }),
@@ -82,7 +74,7 @@ export function StudentMyProjectsStatusChart({
       ) || key;
 
     return {
-      name: STATUS_LABELS[normalizedKey] || STATUS_LABELS[key] || key,
+      name: statusToLabel(normalizedKey) || statusToLabel(key) || key,
       value: Number(value),
       fill: STATUS_COLORS[normalizedKey] || STATUS_COLORS[key] || "#6b7280",
     };

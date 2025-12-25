@@ -10,6 +10,8 @@ import type {
   ProjectListQuery,
   ProjectListResponse,
   ProjectsReadyForCouncilResponse,
+  RejectProjectRequest,
+  ResubmitProjectRequest,
   UpdateProjectStatusRequest,
 } from "../types";
 import type { ProjectDetailResponse } from "../types";
@@ -87,5 +89,19 @@ export const projectService = {
       "/api/councils/projects-ready-for-council"
     );
     return response.data;
+  },
+
+  async rejectProject(
+    id: number,
+    payload: RejectProjectRequest
+  ): Promise<void> {
+    await apiClient.post(`/api/projects/${id}/reject`, payload);
+  },
+
+  async resubmitProject(
+    id: number,
+    payload: ResubmitProjectRequest
+  ): Promise<void> {
+    await apiClient.post(`/api/projects/${id}/resubmit`, payload);
   },
 };

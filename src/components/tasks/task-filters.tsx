@@ -1,6 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -8,8 +6,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import { Filter, Milestone, UserRound } from "lucide-react";
 import type { MilestoneFilterOption, ProjectMemberOption } from "./types";
 
 type TaskFiltersProps = {
@@ -17,8 +13,6 @@ type TaskFiltersProps = {
   milestoneFilter: string;
   onMemberFilterChange: (value: string) => void;
   onMilestoneFilterChange: (value: string) => void;
-  onClearFilters: () => void;
-  isFilterActive: boolean;
   isFilterDisabled: boolean;
   memberOptions: ProjectMemberOption[];
   milestoneOptions: MilestoneFilterOption[];
@@ -35,8 +29,6 @@ export function TaskFilters({
   milestoneFilter,
   onMemberFilterChange,
   onMilestoneFilterChange,
-  onClearFilters,
-  isFilterActive,
   isFilterDisabled,
   memberOptions,
   milestoneOptions,
@@ -47,61 +39,18 @@ export function TaskFilters({
   isProjectMilestonesError,
   projectMilestonesErrorMessage,
 }: TaskFiltersProps) {
-  return (
-    <Card
-      className={cn(
-        "border transition-all",
-        isFilterActive
-          ? "border-emerald-300/60 bg-gradient-to-br from-emerald-50/80 via-emerald-50/40 to-background shadow-md shadow-emerald-100/50"
-          : "border-border/60 bg-card"
-      )}
-    >
-      <CardHeader className="pb-3 pt-3 px-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Filter
-              className={cn(
-                "h-4 w-4",
-                isFilterActive ? "text-emerald-600" : "text-muted-foreground"
-              )}
-            />
-            <span className="text-sm font-semibold">Bộ lọc</span>
-          </div>
-          {isFilterActive && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onClearFilters}
-              disabled={isFilterDisabled}
-              className="px-2 text-xs h-5"
-            >
-              Xóa lọc
-            </Button>
-          )}
-        </div>
-      </CardHeader>
+  if (isFilterDisabled) {
+    return null;
+  }
 
-      {isFilterDisabled ? (
-        <CardContent className="px-4 pb-4 pt-0">
-          <p className="text-xs text-muted-foreground">
-            Chọn một dự án để kích hoạt các bộ lọc.
-          </p>
-        </CardContent>
-      ) : (
-        <CardContent className="px-4 pb-4 pt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <UserRound className="h-3.5 w-3.5" />
-                <span>Thành viên phụ trách</span>
-              </div>
+  return (
+    <div className="flex flex-wrap items-center gap-3">
               <Select
                 value={memberFilter}
                 onValueChange={onMemberFilterChange}
                 disabled={isFilterDisabled}
               >
-                <SelectTrigger className="h-9 w-full">
+        <SelectTrigger className="w-[200px]">
                   <SelectValue
                     placeholder={
                       isProjectMembersLoading
@@ -164,19 +113,13 @@ export function TaskFilters({
                   )}
                 </SelectContent>
               </Select>
-            </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <Milestone className="h-3.5 w-3.5" />
-                <span>Tiến trình dự án</span>
-              </div>
               <Select
                 value={milestoneFilter}
                 onValueChange={onMilestoneFilterChange}
                 disabled={isFilterDisabled}
               >
-                <SelectTrigger className="h-9 w-full">
+        <SelectTrigger className="w-[200px]">
                   <SelectValue
                     placeholder={
                       isMilestoneSelectLoading
@@ -187,9 +130,7 @@ export function TaskFilters({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả tiến độ</SelectItem>
-                  <SelectItem value="__noMilestone">
-                    Chưa gắn tiến độ
-                  </SelectItem>
+          <SelectItem value="__noMilestone">Chưa gắn tiến độ</SelectItem>
                   {isProjectMilestonesError ? (
                     <SelectItem value="__milestoneError" disabled>
                       {projectMilestonesErrorMessage}
@@ -219,10 +160,7 @@ export function TaskFilters({
                       ].filter(Boolean);
 
                       return (
-                        <SelectItem
-                          key={milestone.value}
-                          value={milestone.value}
-                        >
+                <SelectItem key={milestone.value} value={milestone.value}>
                           <div className="flex max-w-[240px] flex-col text-left">
                             <span className="truncate text-xs font-no text-foreground leading-tight">
                               {milestone.label}
@@ -240,9 +178,5 @@ export function TaskFilters({
                 </SelectContent>
               </Select>
             </div>
-          </div>
-        </CardContent>
-      )}
-    </Card>
   );
 }

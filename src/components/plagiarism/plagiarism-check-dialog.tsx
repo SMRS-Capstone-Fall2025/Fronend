@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   useCheckPlagiarismMutation,
+  usePlagiarismResultByScanIdQuery,
   useSubmitPlagiarismUrlMutation,
 } from "@/services/plagiarism/hooks";
 import type { PlagiarismCheckResult } from "@/services/types/plagiarism";
@@ -29,7 +30,7 @@ import {
   Loader2,
   Shield,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface PlagiarismCheckDialogProps {
   open: boolean;
@@ -37,7 +38,8 @@ interface PlagiarismCheckDialogProps {
   reportId: number;
   reportFilePath: string | null;
   projectName?: string;
-  onResultReady?: (resultData: unknown) => void;
+  onResultReady?: (scanId: number) => void;
+  isCheck?: boolean; // Nếu true, tự động check và polling
 }
 
 export function PlagiarismCheckDialog({
@@ -47,14 +49,31 @@ export function PlagiarismCheckDialog({
   reportFilePath,
   projectName,
   onResultReady,
+  isCheck = false,
 }: PlagiarismCheckDialogProps) {
   const [result, setResult] = useState<PlagiarismCheckResult | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [scanId, setScanId] = useState<number | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const submitUrlMutation = useSubmitPlagiarismUrlMutation();
   const checkPlagiarismMutation = useCheckPlagiarismMutation();
+
+  // Query để lấy kết quả khi có scanId
+  const { data: polledResult } = usePlagiarismResultByScanIdQuery(scanId, {
+    enabled: scanId != null && isCheck && processingDialogOpen,
+    refetchInterval: (queryState) => {
+      // Nếu status là "completed" hoặc "failed", dừng polling
+      const data = queryState.state.data as PlagiarismCheckResult | null;
+      if (data?.status === "completed" || data?.status === "failed") {
+        return false;
+      }
+      // Polling mỗi 3 giây
+      return 3000;
+    },
+  });
 
   useEffect(() => {
     if (!open) {
@@ -62,8 +81,40 @@ export function PlagiarismCheckDialog({
       setProcessingDialogOpen(false);
       setSuccessDialogOpen(false);
       setIsChecking(false);
+      setScanId(null);
+      // Clear polling interval
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
     }
   }, [open]);
+
+  // Tự động check khi isCheck = true và dialog mở
+  useEffect(() => {
+    if (open && isCheck && reportFilePath && !isChecking && !result) {
+      handleCheck();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isCheck, reportFilePath]);
+
+  // Khi có kết quả từ polling, cập nhật result và mở modal kết quả
+  useEffect(() => {
+    if (polledResult && processingDialogOpen) {
+      const polledData = polledResult as PlagiarismCheckResult;
+      if (polledData.status === "completed") {
+        setResult(polledData);
+        setProcessingDialogOpen(false);
+        // Tự động mở modal kết quả khi polling thành công
+        if (onResultReady && scanId) {
+          onResultReady(scanId);
+        }
+      } else if (polledData.status === "failed") {
+        setResult(polledData);
+        setProcessingDialogOpen(false);
+      }
+    }
+  }, [polledResult, processingDialogOpen, onResultReady, scanId]);
 
   const handleCheck = async () => {
     if (!reportFilePath) {
@@ -82,7 +133,6 @@ export function PlagiarismCheckDialog({
         reportId,
         reportFilePath: reportFilePath,
       });
-      setResult(checkResult);
 
       // Submit plagiarism report to backend (only if reportFilePath exists and scanId is available)
       if (reportFilePath && checkResult?.scanId) {
@@ -97,105 +147,30 @@ export function PlagiarismCheckDialog({
         }
       }
 
-      // Show success dialog
-      setSuccessDialogOpen(true);
-      setProcessingDialogOpen(false);
-
-      if (checkResult.status === "completed" && onResultReady) {
-        const mockData = {
-          scannedDocument: {
-            scanId: checkResult.scanId,
-            totalWords: 1367,
-            totalExcluded: 3,
-            credits: 0,
-            expectedCredits: 6,
-            creationTime: new Date().toISOString(),
-            metadata: {
-              creationDate: "2016-03-19T06:18:44Z",
-              lastModificationDate: "2016-03-19T06:18:44Z",
-              author: "Philip Hutchison",
-              filename: reportFilePath.split("/").pop() || "report.pdf",
-            },
-            detectedLanguage: "vi",
-          },
-          results: {
-            score: {
-              identicalWords: checkResult.identical,
-              minorChangedWords: checkResult.minorChanges,
-              relatedMeaningWords: checkResult.relatedMeaning,
-              aggregatedScore: checkResult.overallSimilarity / 100,
-            },
-            internet: checkResult.sources
-              .filter((s: { type: string }) => s.type === "internet")
-              .map(
-                (s: {
-                  url: string;
-                  title: string;
-                  introduction: string;
-                  matchedWords: number;
-                  identicalWords: number;
-                }) => ({
-                  url: s.url,
-                  id: s.url.split("/").pop() || "",
-                  title: s.title,
-                  introduction: s.introduction,
-                  matchedWords: s.matchedWords,
-                  identicalWords: s.identicalWords,
-                  similarWords: 0,
-                  paraphrasedWords: 0,
-                  totalWords: s.matchedWords + 10,
-                })
-              ),
-            database: checkResult.sources
-              .filter((s: { type: string }) => s.type === "database")
-              .map(
-                (s: {
-                  url: string;
-                  title: string;
-                  introduction: string;
-                  matchedWords: number;
-                  identicalWords: number;
-                }) => ({
-                  url: s.url,
-                  id: s.url,
-                  title: s.title,
-                  introduction: s.introduction,
-                  matchedWords: s.matchedWords,
-                  identicalWords: s.identicalWords,
-                })
-              ),
-            batch: [],
-            repositories: [],
-          },
-          writingFeedback: {
-            textStatistics: {
-              sentenceCount: 45,
-              averageWordLength: 4.7,
-              averageSentenceLength: 12.8,
-              readingTimeSeconds: 21.0,
-              speakingTimeSeconds: 29.5,
-            },
-            score: {
-              grammarCorrectionsCount: 1,
-              grammarCorrectionsScore: 93,
-              mechanicsCorrectionsCount: 1,
-              mechanicsCorrectionsScore: 93,
-              sentenceStructureCorrectionsCount: 1,
-              sentenceStructureCorrectionsScore: 93,
-              wordChoiceCorrectionsCount: 0,
-              wordChoiceCorrectionsScore: 100,
-              overallScore: 94,
-            },
-            readability: {
-              score: 95,
-              readabilityLevel: 1,
-              readabilityLevelText: "5th Grader",
-              readabilityLevelDescription: "Very easy to read",
-            },
-          },
-          status: 0,
-        };
-        onResultReady(mockData);
+      // Nếu đã có kết quả completed ngay, set result luôn
+      if (checkResult.status === "completed") {
+        setResult(checkResult);
+        setProcessingDialogOpen(false);
+        setSuccessDialogOpen(false);
+        // Gọi callback để mở modal kết quả
+        if (onResultReady) {
+          const scanIdToUse = checkResult.scanId
+            ? Number.parseInt(checkResult.scanId, 10)
+            : reportId;
+          onResultReady(scanIdToUse);
+        }
+      } else {
+        // Nếu chưa có kết quả, lưu scanId và bắt đầu polling
+        setScanId(reportId);
+        if (isCheck) {
+          // Nếu isCheck = true, tự động mở processing dialog và bắt đầu polling
+          setProcessingDialogOpen(true);
+          setSuccessDialogOpen(false);
+        } else {
+          // Nếu không phải auto check, hiển thị success dialog như cũ
+          setSuccessDialogOpen(true);
+          setProcessingDialogOpen(false);
+        }
       }
     } catch (error) {
       console.error("Failed to check plagiarism:", error);

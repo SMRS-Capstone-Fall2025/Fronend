@@ -1,4 +1,5 @@
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -18,6 +19,8 @@ import type {
   ProjectListQuery,
   ProjectListResponse,
   ProjectsReadyForCouncilResponse,
+  RejectProjectRequest,
+  ResubmitProjectRequest,
   UpdateProjectStatusRequest,
 } from "../types";
 import { projectService } from "./service";
@@ -48,10 +51,18 @@ export const projectQueryKeys = {
   readyForCouncil: () => [...projectsKey, "ready-for-council"] as const,
 };
 
-export const useProjectsQuery = (params?: ProjectListQuery) =>
+export const useProjectsQuery = (
+  params?: ProjectListQuery,
+  options?: Omit<
+    UseQueryOptions<ProjectListResponse, Error>,
+    "queryKey" | "queryFn"
+  >
+) =>
   useQuery<ProjectListResponse, Error>({
     queryKey: projectQueryKeys.list(params),
     queryFn: () => projectService.getProjects(params),
+    placeholderData: keepPreviousData,
+    ...options,
   });
 
 export const useProjectsInfiniteQuery = (
@@ -228,3 +239,62 @@ export const useProjectsReadyForCouncilQuery = (
     staleTime: 30_000,
     ...options,
   });
+
+export const useRejectProjectMutation = (
+  options?: UseMutationOptions<
+    void,
+    Error,
+    { readonly id: number; readonly payload: RejectProjectRequest }
+  >
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    void,
+    Error,
+    { readonly id: number; readonly payload: RejectProjectRequest }
+  >({
+    mutationFn: ({ id, payload }) => projectService.rejectProject(id, payload),
+    onSuccess: async (data, variables, context) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: projectQueryKeys.all }),
+        queryClient.invalidateQueries({
+          queryKey: projectQueryKeys.detail(variables.id),
+        }),
+      ]);
+      await options?.onSuccess?.(data, variables, context);
+    },
+    onError: options?.onError,
+    onSettled: options?.onSettled,
+  });
+};
+
+export const useResubmitProjectMutation = (
+  options?: UseMutationOptions<
+    void,
+    Error,
+    { readonly id: number; readonly payload: ResubmitProjectRequest }
+  >
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    void,
+    Error,
+    { readonly id: number; readonly payload: ResubmitProjectRequest }
+  >({
+    mutationFn: ({ id, payload }) =>
+      projectService.resubmitProject(id, payload),
+    onSuccess: async (data, variables, context) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: projectQueryKeys.all }),
+        queryClient.invalidateQueries({
+          queryKey: projectQueryKeys.detail(variables.id),
+        }),
+      ]);
+      await options?.onSuccess?.(data, variables, context);
+    },
+    onError: options?.onError,
+    onSettled: options?.onSettled,
+  });
+};

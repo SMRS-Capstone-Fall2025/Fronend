@@ -1,4 +1,5 @@
 import {
+  QueryKey,
   useMutation,
   useQuery,
   useQueryClient,
@@ -9,19 +10,18 @@ import type {
   AccountListQuery,
   AccountSearchParams,
   AccountSearchResponse,
-  LoginRequest,
-  LoginResponse,
-  RegisterRequest,
-  RegisterResponse,
+  ChangePasswordRequest,
   CreateAccountRequest,
   CreateAccountResponse,
+  LoginRequest,
+  LoginResponse,
   MeResponse,
-  ChangePasswordRequest,
+  RegisterRequest,
+  RegisterResponse,
   UpdateAccountRequest,
   UpdateAccountResponse,
 } from "../types";
 import { accountService } from "./service";
-import { QueryKey } from "@tanstack/react-query";
 
 type NormalizedAccountSearchParams = {
   readonly keyword: string;
@@ -58,13 +58,10 @@ export const useAccountSearchQuery = (
   > = {
     queryKey: [...accountsKey, "search", normalizedParams] as const,
     queryFn: () => accountService.search(normalizedParams),
-
   };
 
   if (options) {
-
-    const { queryKey: _queryKey, queryFn: _queryFn, ...restOptions } = options;
-    Object.assign(config, restOptions);
+    Object.assign(config, options);
   }
 
   return useQuery<AccountSearchResponse, Error, AccountSearchResponse>(config);
@@ -147,7 +144,6 @@ export const useAccountsListQuery = (
   > = {
     queryKey: accountsListKey(normalized) as QueryKey,
     queryFn: () => accountService.listAccounts(normalized),
-
   };
 
   if (options) Object.assign(config, options);
@@ -262,7 +258,6 @@ export const useUpdateAccountMutation = (
   return useMutation<UpdateAccountResponse, Error, UpdateAccountRequest>({
     mutationFn: (payload) => accountService.updateAccount(payload),
     async onSuccess(data, variables, context) {
-
       await queryClient.invalidateQueries({ queryKey: [...accountsKey, "me"] });
       if (onSuccess) {
         await onSuccess(data, variables, context);

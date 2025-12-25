@@ -1,4 +1,4 @@
-  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
@@ -15,6 +15,9 @@ const STATUS_COLORS: Record<string, string> = {
   InProgress: "#3b82f6",
   Completed: "#8b5cf6",
   InReview: "#8b5cf6",
+  Scored: "#8b5cf6",
+  Archived: "#8b5cf6",
+  RevisionRequired: "#8b5cf6",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -23,7 +26,10 @@ const STATUS_LABELS: Record<string, string> = {
   Rejected: "Từ chối",
   InProgress: "Đang thực hiện",
   Completed: "Hoàn thành",
-  InReview: "Đang xem xét",
+  InReview: "Đang chấm điểm",
+  Scored: "Đã chấm điểm",
+  Archived: "Lưu trữ",
+  RevisionRequired: "Yêu cầu sửa đổi",
 };
 
 const chartConfig = Object.entries(STATUS_COLORS).reduce(
@@ -85,11 +91,13 @@ export function DeanMentorProjectsStatusChart({
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <Card className="overflow-hidden opacity-0 animate-fade-in-up"
+    <Card
+      className="overflow-hidden opacity-0 animate-fade-in-up"
       style={{
         animationDelay: "200ms",
         animationFillMode: "forwards",
-      }}>
+      }}
+    >
       <CardHeader>
         <CardTitle>Trạng thái nhóm đang hướng dẫn</CardTitle>
       </CardHeader>
@@ -144,4 +152,3 @@ export function DeanMentorProjectsStatusChart({
     </Card>
   );
 }
-

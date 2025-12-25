@@ -38,7 +38,6 @@ interface ProjectCardV2Props {
   statusStyle: StatusStyle;
   gradientClass: string;
   statusTitleClass: string;
-  statusSubtitleClass: string;
   onClick: () => void;
 }
 
@@ -47,7 +46,6 @@ export function ProjectCardV2({
   statusStyle,
   gradientClass,
   statusTitleClass,
-  statusSubtitleClass,
   onClick,
 }: ProjectCardV2Props) {
   const specialization = summary.specialization ?? null;
@@ -94,16 +92,6 @@ export function ProjectCardV2({
                   </div>
                 )}
                 <div>
-                  <p
-                    className={cn(
-                      "text-[10px] uppercase tracking-[0.15em] sm:text-xs sm:tracking-[0.2em]",
-                      statusSubtitleClass
-                    )}
-                  >
-                    {summary.status === "pending"
-                      ? "Chờ hội đồng"
-                      : "Đang triển khai"}
-                  </p>
                   <h3
                     className={cn(
                       "mt-1 text-base font-semibold leading-tight sm:text-lg",

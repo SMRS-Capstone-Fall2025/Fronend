@@ -344,11 +344,6 @@ export function ProjectInvitationsPageContent({
                           <h2 className="text-base font-semibold text-foreground">
                             {invitation.projectName}
                           </h2>
-                          {invitation.memberRole && (
-                            <Badge variant="outline" className="text-xs">
-                              {invitation.memberRole}
-                            </Badge>
-                          )}
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                           <span>

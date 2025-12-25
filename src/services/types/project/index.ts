@@ -8,7 +8,9 @@ export type ProjectStatusApi =
   | "InProgress"
   | "Completed"
   | "Cancelled"
-  | "Archived";
+  | "Archived"
+  | "RevisionRequired"
+  | "Scored";
 
 export interface ProjectListQuery {
   readonly page?: number;
@@ -54,6 +56,10 @@ export interface ProjectListItemDto {
   readonly students?: ProjectStudentDto[] | null;
   readonly hasFinalReport?: boolean;
   readonly majorId?: number | null;
+  readonly isCreatedByDean?: boolean;
+  readonly rejectionReason?: string | null;
+  readonly rejectionFeedback?: string | null;
+  readonly revisionDeadline?: string | null;
 }
 
 export interface ProjectListResponse {
@@ -184,6 +190,9 @@ export interface ProjectDetailResponseDto {
   readonly files?: ProjectFileInfoDto[];
   readonly images?: ProjectImageInfoDto[];
   readonly statistics?: ProjectStatisticsDto | null;
+  readonly rejectionReason?: string | null;
+  readonly rejectionFeedback?: string | null;
+  readonly revisionDeadline?: string | null;
 }
 
 export type ProjectDetailResponse = ApiEnvelope<ProjectDetailResponseDto>;
@@ -193,7 +202,26 @@ export interface UpdateProjectStatusRequest {
   readonly note?: string | null;
 }
 
+export interface RejectProjectRequest {
+  readonly reason?: string | null;
+  readonly feedback?: string | null;
+  readonly rejectType: "REVISION" | "PERMANENT";
+  readonly revisionDays?: number | null;
+}
+
 export interface PickProjectRequest {
+  readonly description?: string | null;
+  readonly majorId?: number | null;
+  readonly files?: Array<{
+    readonly filePath: string;
+    readonly type?: string | null;
+  }> | null;
+  readonly images?: Array<{
+    readonly url: string;
+  }> | null;
+}
+
+export interface ResubmitProjectRequest {
   readonly description?: string | null;
   readonly majorId?: number | null;
   readonly files?: Array<{

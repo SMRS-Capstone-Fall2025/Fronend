@@ -1,21 +1,17 @@
-import { useState, useEffect } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Award, FileText } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import type { GradingRubric, GradeSubmission } from "@/services/types";
+import type { GradeSubmission, GradingRubric } from "@/services/types";
 import { DEFAULT_GRADING_RUBRIC } from "@/services/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle, Award, FileText } from "lucide-react";
+import { useMemo } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 interface GradingFormProps {
   milestoneId: number;
@@ -31,6 +27,7 @@ interface GradingFormProps {
     totalScore: number;
     feedback?: string | null;
   } | null;
+  readOnly?: boolean;
 }
 
 export function GradingForm({
@@ -43,30 +40,66 @@ export function GradingForm({
   onCancel,
   isSubmitting = false,
   existingGrade,
+  readOnly = false,
 }: GradingFormProps) {
   const rubric: GradingRubric = DEFAULT_GRADING_RUBRIC;
 
-  // Initialize scores from existing grade or zeros
-  const [scores, setScores] = useState<Record<number, number>>(() => {
-    const initial: Record<number, number> = {};
+  const gradingSchema = useMemo(() => {
+    const scoresSchema: Record<string, z.ZodNumber> = {};
+    rubric.criteria.forEach((criterion) => {
+      scoresSchema[`score_${criterion.id}`] = z
+        .number()
+        .min(0, `Điểm không được nhỏ hơn 0`)
+        .max(
+          criterion.maxScore,
+          `Điểm không được vượt quá ${criterion.maxScore}`
+        );
+    });
+
+    return z.object({
+      ...scoresSchema,
+      feedback: z.string().optional(),
+    });
+  }, [rubric]);
+
+  type GradingFormValues = z.infer<typeof gradingSchema>;
+
+  const defaultValues = useMemo(() => {
+    const values: Record<string, number | string> = {
+      feedback: existingGrade?.feedback ?? "",
+    };
     rubric.criteria.forEach((criterion) => {
       const existing = existingGrade?.scores.find(
         (s) => s.criterionId === criterion.id
       );
-      initial[criterion.id] = existing?.score ?? 0;
+      values[`score_${criterion.id}`] = existing?.score ?? 0;
     });
-    return initial;
+    return values as GradingFormValues;
+  }, [rubric, existingGrade]);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    control,
+    formState: { errors },
+  } = useForm<GradingFormValues>({
+    resolver: zodResolver(gradingSchema),
+    defaultValues,
+    disabled: readOnly,
   });
 
-  const [feedback, setFeedback] = useState(existingGrade?.feedback ?? "");
+  const watchedValues = watch();
+  const totalScore = useMemo(() => {
+    return rubric.criteria.reduce((sum, criterion) => {
+      const key = `score_${criterion.id}` as keyof typeof watchedValues;
+      const rawScore = watchedValues?.[key];
+      const score =
+        typeof rawScore === "number" ? rawScore : Number(rawScore) || 0;
+      return sum + score;
+    }, 0);
+  }, [watchedValues, rubric]);
 
-  // Calculate total score
-  const totalScore = Object.values(scores).reduce(
-    (sum, score) => sum + score,
-    0
-  );
-
-  // Determine grade level
   const getGradeLevel = (score: number) => {
     if (score >= 90) return { label: "Xuất sắc", color: "bg-green-500" };
     if (score >= 80) return { label: "Tốt", color: "bg-blue-500" };
@@ -77,36 +110,26 @@ export function GradingForm({
 
   const gradeLevel = getGradeLevel(totalScore);
 
-  const handleScoreChange = (criterionId: number, value: string) => {
-    const numValue = parseFloat(value) || 0;
-    const criterion = rubric.criteria.find((c) => c.id === criterionId);
-    if (!criterion) return;
-
-    // Clamp value between 0 and maxScore
-    const clampedValue = Math.max(0, Math.min(numValue, criterion.maxScore));
-    setScores((prev) => ({ ...prev, [criterionId]: clampedValue }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onSubmitForm = handleSubmit((data) => {
     const gradeData: GradeSubmission = {
       milestoneId,
-      scores: Object.entries(scores).map(([criterionId, score]) => ({
-        criterionId: parseInt(criterionId),
-        score,
+      scores: rubric.criteria.map((criterion) => ({
+        criterionId: criterion.id,
+        score:
+          Number((data as Record<string, unknown>)[`score_${criterion.id}`]) ||
+          0,
       })),
       totalScore,
-      feedback: feedback.trim() || null,
+      feedback:
+        typeof data.feedback === "string" ? data.feedback.trim() || null : null,
       gradedAt: new Date().toISOString(),
     };
 
     onSubmit(gradeData);
-  };
+  });
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Header */}
+    <form onSubmit={onSubmitForm} className="space-y-6">
       <div className="text-center space-y-2 border-b pb-4">
         <h2 className="text-xl font-bold mt-4">PHIẾU ĐÁNH GIÁ</h2>
         <h3 className="text-lg font-semibold">
@@ -114,7 +137,6 @@ export function GradingForm({
         </h3>
       </div>
 
-      {/* Student Info */}
       <div className="space-y-3 text-sm">
         {studentName && (
           <div className="flex gap-2">
@@ -132,7 +154,6 @@ export function GradingForm({
         )}
       </div>
 
-      {/* Report Preview */}
       {(reportUrl || reportComment) && (
         <Card>
           <CardHeader>
@@ -164,7 +185,6 @@ export function GradingForm({
         </Card>
       )}
 
-      {/* Grading Criteria */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
@@ -210,17 +230,42 @@ export function GradingForm({
                       {criterion.maxScore}
                     </td>
                     <td className="border border-border p-2">
-                      <Input
-                        type="number"
-                        min={0}
-                        max={criterion.maxScore}
-                        step={0.5}
-                        value={scores[criterion.id] || 0}
-                        onChange={(e) =>
-                          handleScoreChange(criterion.id, e.target.value)
+                      <Controller
+                        name={
+                          `score_${criterion.id}` as keyof GradingFormValues
                         }
-                        className="text-center font-medium"
-                        required
+                        control={control}
+                        render={({ field }) => (
+                          <div>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={criterion.maxScore}
+                              step={0.5}
+                              {...field}
+                              value={field.value ?? 0}
+                              onChange={(e) => {
+                                const value = parseFloat(e.target.value) || 0;
+                                const clampedValue = Math.max(
+                                  0,
+                                  Math.min(value, criterion.maxScore)
+                                );
+                                field.onChange(clampedValue);
+                              }}
+                              className="text-center font-medium"
+                              disabled={readOnly || isSubmitting}
+                              readOnly={readOnly}
+                            />
+                            {errors[`score_${criterion.id}` as keyof typeof errors] && (
+                              <p className="text-xs text-destructive mt-1">
+                                {String(
+                                  errors[`score_${criterion.id}` as keyof typeof errors]
+                                    ?.message ?? ""
+                                )}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       />
                     </td>
                   </tr>
@@ -243,7 +288,6 @@ export function GradingForm({
             </table>
           </div>
 
-          {/* Grade Level Indicator */}
           <div className="mt-4 flex items-center justify-center gap-3">
             <Award className="h-5 w-5 text-muted-foreground" />
             <span className="text-sm font-medium">Xếp loại:</span>
@@ -252,7 +296,6 @@ export function GradingForm({
             </Badge>
           </div>
 
-          {/* Grading Note */}
           <Alert className="mt-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="text-xs">
@@ -265,37 +308,41 @@ export function GradingForm({
         </CardContent>
       </Card>
 
-      {/* Feedback */}
       <div className="space-y-2">
         <Label htmlFor="feedback" className="text-sm font-medium">
           7. Ý kiến khác:
         </Label>
         <Textarea
           id="feedback"
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
+          {...register("feedback")}
           placeholder="Nhập ý kiến đánh giá, nhận xét về đề tài..."
           className="min-h-[120px]"
+          disabled={readOnly || isSubmitting}
+          readOnly={readOnly}
         />
+        {errors.feedback && (
+          <p className="text-xs text-destructive">{errors.feedback.message}</p>
+        )}
       </div>
 
-      {/* Actions */}
       <div className="flex items-center justify-end gap-3 pt-4 border-t">
         <Button
           type="button"
-          variant="outline"
+          variant={readOnly ? "default" : "outline"}
           onClick={onCancel}
           disabled={isSubmitting}
         >
-          Hủy
+          {readOnly ? "Đóng" : "Hủy"}
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting
-            ? "Đang lưu..."
-            : existingGrade
-            ? "Cập nhật điểm"
-            : "Lưu điểm"}
-        </Button>
+        {!readOnly && (
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting
+              ? "Đang lưu..."
+              : existingGrade
+              ? "Cập nhật điểm"
+              : "Lưu điểm"}
+          </Button>
+        )}
       </div>
     </form>
   );

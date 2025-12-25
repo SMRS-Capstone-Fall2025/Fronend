@@ -17,7 +17,6 @@ import Logo from "@/components/logo";
 import { UserNav } from "@/components/user-nav";
 import { type NavItem } from "@/lib/types";
 import { Link, useLocation } from "react-router-dom";
-import { Notifications } from "./notifications";
 import { Button } from "./ui/button";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
@@ -40,7 +39,6 @@ export function AppShell({ navItems, children, pageTitle }: AppShellProps) {
         </SidebarHeader>
         <SidebarContent>
           {(() => {
-
             const grouped = navItems.reduce((acc, item, index) => {
               const group = item.group || "default";
               if (!acc[group]) {
@@ -101,11 +99,11 @@ export function AppShell({ navItems, children, pageTitle }: AppShellProps) {
             {pageTitle}
           </h1>
           <div className="flex items-center gap-4">
-            <Notifications />
+            {/* <Notifications /> */}
             <UserNav />
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+        <main className="flex-1 py-4 overflow-auto">
           <div className="container mx-auto max-w-7xl">{children}</div>
         </main>
       </SidebarInset>

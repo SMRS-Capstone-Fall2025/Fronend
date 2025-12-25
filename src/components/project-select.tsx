@@ -91,7 +91,7 @@ export function ProjectSelect({
       ...defaultQueryParams,
       ...queryParams,
       isMine: true,
-      status: "Approved",
+      status: !queryParams?.hasFinalReport ? "Approved" : null,
     };
   }, [queryParams]);
 
@@ -141,7 +141,7 @@ export function ProjectSelect({
       <SelectTrigger
         ref={triggerRef}
         className={cn(
-          "w-full items-center justify-between gap-3 overflow-hidden px-4 py-3 text-left",
+          "w-full items-center justify-between gap-3 overflow-hidden px-4 py-3 text-left max-w-[680px]",
           "h-11",
           triggerClassName,
           {
@@ -179,7 +179,11 @@ export function ProjectSelect({
           </SelectItem>
         ) : (
           options.map((project) => (
-            <SelectItem key={project.id} value={project.id} className="py-2">
+            <SelectItem
+              key={project.id}
+              value={project.id}
+              className="py-2 max-w-[680px] overflow-hidden"
+            >
               <div className="flex flex-col gap-1 text-left">
                 <span className="truncate text-sm font-medium text-foreground">
                   {project.name}

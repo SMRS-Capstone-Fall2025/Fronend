@@ -70,4 +70,3 @@ export const majorService = {
     return unwrapLecturerList(response?.data ?? null);
   },
 };
-

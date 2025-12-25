@@ -1,15 +1,15 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
 import {
   TASK_COLUMN_META,
   TASK_STATUS_ORDER,
   TASK_STATUS_STYLES,
 } from "@/lib/task-board";
-import { TaskCard } from "./task-card";
-import { ClipboardList, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { TaskDto, TaskStatus } from "@/services/types/task";
+import { ClipboardList, Loader2 } from "lucide-react";
+import { TaskCard } from "./task-card";
 
 const columnMeta = TASK_COLUMN_META;
 const STATUS_ORDER = TASK_STATUS_ORDER;
@@ -53,7 +53,7 @@ export function TaskBoard({
       )}
       {STATUS_ORDER.map((status) => (
         <div key={status} className="flex flex-col">
-          <Card className="border-2 shadow-lg h-full flex flex-col">
+          <Card className="border-2 h-full flex flex-col">
             <CardHeader className="pb-3 border-b">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -141,4 +141,3 @@ export function TaskBoard({
     </div>
   );
 }
-

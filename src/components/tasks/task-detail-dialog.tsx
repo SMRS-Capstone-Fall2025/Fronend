@@ -34,7 +34,6 @@ import type { ProjectMemberOption } from "./types";
 type TaskDetailDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  taskId: number | null;
   task: TaskDto | undefined;
   isLoading: boolean;
   isError: boolean;
@@ -55,7 +54,6 @@ type TaskDetailDialogProps = {
 export function TaskDetailDialog({
   open,
   onOpenChange,
-  taskId,
   task,
   isLoading,
   isError,

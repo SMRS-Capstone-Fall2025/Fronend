@@ -95,4 +95,13 @@ export const projectMemberService = {
       : null;
     return normalized;
   },
+
+  async deleteMember(
+    projectId: number | string,
+    memberId: number | string
+  ): Promise<void> {
+    await apiClient.delete(
+      `/api/project-members/project/${projectId}/member/${memberId}`
+    );
+  },
 };

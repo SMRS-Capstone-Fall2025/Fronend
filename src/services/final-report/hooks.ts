@@ -1,9 +1,9 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import type {
+import {
   FinalReportListResult,
   MentorReviewListResult,
   ProjectReviewListResult,
-} from "../../../../../201/scientific-research (3)/scientific-research/src/services/types";
+} from "../types/final-report";
 import { finalReportService } from "./service";
 
 const finalReportsKey = ["final-reports"] as const;

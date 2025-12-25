@@ -1,3 +1,13 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,18 +18,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { useAuthAccountStore } from "@/lib/auth-store";
 import type { SubmissionAsset, UserSummary } from "@/lib/project-types";
+import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import {
+  AlertCircle,
   ArrowDownToLineIcon,
+  Clock,
   ExternalLinkIcon,
   Folder,
+  FolderOpenDot,
   PaperclipIcon,
   ShieldAlert,
   UserPlusIcon,
-  FolderOpenDot,
+  X,
 } from "lucide-react";
+import { useMemo, useState } from "react";
 
 type ProjectMemberInfo = UserSummary & {
   inviteStatus?: string | null;
@@ -33,6 +48,9 @@ type ProjectDetailMeta = {
   collaborators: ProjectMemberInfo[];
   mentors: ProjectMemberInfo[];
   attachments: SubmissionAsset[];
+  rejectionReason?: string | null;
+  rejectionFeedback?: string | null;
+  revisionDeadline?: string | null;
 };
 
 type SpecializationOption = {
@@ -73,6 +91,12 @@ interface StudentProjectDetailDialogProps {
   readonly onInviteClick: (target: "member" | "mentor") => void;
   readonly onPickProject?: () => void;
   readonly canPick?: boolean;
+  readonly onResubmit?: () => void;
+  readonly canResubmit?: boolean;
+  readonly projectId?: number | null;
+  readonly onRemoveMember?: (memberId: number) => Promise<void>;
+  readonly isRemovingMember?: boolean;
+  readonly ownerAccountId?: string | null;
 }
 
 function getInitials(value: string) {
@@ -100,10 +124,56 @@ export function StudentProjectDetailDialog({
   onInviteClick,
   onPickProject,
   canPick = false,
+  onResubmit,
+  canResubmit = false,
+  projectId,
+  onRemoveMember,
+  isRemovingMember = false,
+  ownerAccountId,
 }: StudentProjectDetailDialogProps) {
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+
+  const currentAccountId = useAuthAccountStore(
+    (state) => state.account?.id ?? null
+  );
+  const currentAccountIdString =
+    currentAccountId != null ? String(currentAccountId) : null;
+
+  const isOwner = useMemo(() => {
+    if (!ownerAccountId || !currentAccountIdString) return false;
+    return ownerAccountId === currentAccountIdString;
+  }, [ownerAccountId, currentAccountIdString]);
+
   const headerGradient = selectedProjectSpecialization?.gradient
     ? `bg-gradient-to-r ${selectedProjectSpecialization.gradient}`
     : "bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600";
+
+  const handleRemoveClick = (member: ProjectMemberInfo) => {
+    // Parse member.id (string) to number (accountId)
+    const memberId = Number.parseInt(member.id, 10);
+    if (Number.isNaN(memberId)) {
+      return;
+    }
+    setMemberToRemove({ id: memberId, name: member.name });
+    setRemoveConfirmOpen(true);
+  };
+
+  const handleConfirmRemove = async () => {
+    if (!memberToRemove || !onRemoveMember) {
+      return;
+    }
+    try {
+      await onRemoveMember(memberToRemove.id);
+      setRemoveConfirmOpen(false);
+      setMemberToRemove(null);
+    } catch (error) {
+      // Error handling is done in the parent component
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -222,7 +292,8 @@ export function StudentProjectDetailDialog({
                     <section className="space-y-3 rounded-md border border-border/70 bg-muted/10 p-4">
                       <header className="text-sm font-semibold">Mô tả</header>
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        {selectedProject.description || "Chưa có mô tả cho dự án này."}
+                        {selectedProject.description ||
+                          "Chưa có mô tả cho dự án này."}
                       </p>
                     </section>
 
@@ -302,12 +373,30 @@ export function StudentProjectDetailDialog({
                                     {member.email}
                                   </p>
                                 </div>
-                                {member.inviteStatus?.toLowerCase() ===
-                                "pending" ? (
-                                  <Badge className="ml-auto bg-amber-100 text-amber-700">
-                                    Chờ xác nhận
-                                  </Badge>
-                                ) : null}
+                                <div className="flex items-center gap-2">
+                                  {member.inviteStatus?.toLowerCase() ===
+                                  "pending" ? (
+                                    <Badge className="bg-amber-100 text-amber-700">
+                                      Chờ xác nhận
+                                    </Badge>
+                                  ) : null}
+                                  {isOwner &&
+                                    onRemoveMember &&
+                                    projectId != null && (
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        onClick={() =>
+                                          handleRemoveClick(member)
+                                        }
+                                        disabled={isRemovingMember}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -459,6 +548,77 @@ export function StudentProjectDetailDialog({
                         </div>
                       </div>
                     )}
+
+                    {canResubmit && onResubmit && (
+                      <div className="space-y-4">
+                        <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="rounded-lg bg-amber-100 p-2">
+                              <ShieldAlert className="h-5 w-5 text-amber-700" />
+                            </div>
+                            <div className="flex-1 space-y-3">
+                              <div>
+                                <h4 className="text-sm font-semibold text-foreground">
+                                  Yêu cầu sửa đổi
+                                </h4>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Dự án của bạn cần được sửa đổi. Vui lòng cập
+                                  nhật thông tin và nộp lại để được xem xét.
+                                </p>
+                              </div>
+
+                              {selectedMeta?.revisionDeadline && (
+                                <div className="flex items-center gap-2 rounded-md bg-amber-100/50 px-3 py-2">
+                                  <Clock className="h-4 w-4 text-amber-700 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-amber-800">
+                                      Hạn nộp lại
+                                    </p>
+                                    <p className="text-xs text-amber-700">
+                                      {selectedMeta.revisionDeadline}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {selectedMeta?.rejectionReason && (
+                                <div className="space-y-1.5 rounded-md bg-white/60 px-3 py-2">
+                                  <div className="flex items-center gap-2">
+                                    <AlertCircle className="h-4 w-4 text-amber-700 flex-shrink-0" />
+                                    <p className="text-xs font-semibold text-amber-800">
+                                      Lý do từ chối
+                                    </p>
+                                  </div>
+                                  <p className="text-xs text-amber-700 leading-relaxed pl-6">
+                                    {selectedMeta.rejectionReason}
+                                  </p>
+                                </div>
+                              )}
+
+                              {selectedMeta?.rejectionFeedback && (
+                                <div className="space-y-1.5 rounded-md bg-white/60 px-3 py-2">
+                                  <p className="text-xs font-semibold text-amber-800">
+                                    Phản hồi chi tiết
+                                  </p>
+                                  <p className="text-xs text-amber-700 leading-relaxed">
+                                    {selectedMeta.rejectionFeedback}
+                                  </p>
+                                </div>
+                              )}
+
+                              <Button
+                                type="button"
+                                onClick={onResubmit}
+                                className="w-full sm:w-auto"
+                                variant="default"
+                              >
+                                Nộp lại
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -466,6 +626,31 @@ export function StudentProjectDetailDialog({
           </>
         )}
       </DialogContent>
+
+      <AlertDialog open={removeConfirmOpen} onOpenChange={setRemoveConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa thành viên</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa thành viên{" "}
+              <span className="font-semibold">{memberToRemove?.name}</span> khỏi
+              dự án này? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRemovingMember}>
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmRemove}
+              disabled={isRemovingMember}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isRemovingMember ? "Đang xóa..." : "Xóa"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthAccountStore } from "@/lib/auth-store";
 import {
   createProjectSchema,
   type CreateProjectFormValues,
@@ -38,16 +39,23 @@ import {
   useUploadImageMutation,
 } from "@/services/upload";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { LucideIcon } from "lucide-react";
 import {
+  BarChart3,
+  Code,
+  Cpu,
   FilePlus,
   GraduationCap,
   ImagePlus,
+  JapaneseYen,
+  Languages,
   Loader2,
+  Palette,
   Paperclip,
   Trash2,
-  X,
+  TrendingUp,
 } from "lucide-react";
-import { ChangeEvent, DragEvent, useMemo, useState } from "react";
+import { ChangeEvent, DragEvent, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 export interface PreviewItem {
@@ -74,6 +82,9 @@ export function CreateProjectDialog({
   const [filePreviews, setFilePreviews] = useState<PreviewItem[]>([]);
   const [imagePreviews, setImagePreviews] = useState<PreviewItem[]>([]);
   const { data: majors = [], isLoading: isLoadingMajors } = useMajorsQuery();
+  const account = useAuthAccountStore((state) => state.account);
+  const isDean = account?.role === "DEAN" || account?.role === "dean";
+  const deanMajor = account?.major;
 
   const activeMajors = useMemo(() => {
     return majors
@@ -85,15 +96,48 @@ export function CreateProjectDialog({
       });
   }, [majors]);
 
+  const majorIconMap = useMemo(() => {
+    const map = new Map<string, LucideIcon>();
+    const iconMapping: Record<string, LucideIcon> = {
+      "Công nghệ thông tin": Code,
+      "Quản trị kinh doanh": TrendingUp,
+      "Kinh tế": BarChart3,
+      "Ngôn ngữ Anh": Languages,
+      "Ngôn ngữ Nhật": JapaneseYen,
+      "Tự động hóa": Cpu,
+      "Thiết kế đồ họa": Palette,
+    };
+
+    activeMajors.forEach((major) => {
+      const name = major.name ?? "";
+      if (name) {
+        const icon = iconMapping[name] || GraduationCap;
+        map.set(name, icon);
+      }
+    });
+
+    return map;
+  }, [activeMajors]);
+
   const createProjectForm = useForm<CreateProjectFormValues>({
     resolver: zodResolver(createProjectSchema),
     defaultValues: {
       name: "",
       description: "",
-      type: "",
+      type: isDean && deanMajor?.name ? deanMajor.name : "",
+      majorId: isDean && deanMajor?.id ? deanMajor.id : undefined,
       dueDate: "",
     },
   });
+
+  useEffect(() => {
+    if (isDean && deanMajor?.name && open) {
+      createProjectForm.setValue("type", deanMajor.name);
+      if (deanMajor.id) {
+        createProjectForm.setValue("majorId", deanMajor.id);
+      }
+    }
+  }, [isDean, deanMajor?.name, deanMajor?.id, open, createProjectForm]);
 
   const createProjectMutation = useCreateProjectMutation();
   const uploadImageMutation = useUploadImageMutation();
@@ -223,21 +267,12 @@ export function CreateProjectDialog({
     });
   };
 
-  const removeImagePreview = (id: string) => {
-    setImagePreviews((prev) => {
-      const target = prev.find((item) => item.id === id);
-      if (target) {
-        URL.revokeObjectURL(target.previewUrl);
-      }
-      return prev.filter((item) => item.id !== id);
-    });
-  };
-
   const resetCreateProjectForm = () => {
     createProjectForm.reset({
       name: "",
       description: "",
       type: "",
+      majorId: undefined,
       dueDate: "",
     });
     clearAttachmentPreviews();
@@ -314,6 +349,7 @@ export function CreateProjectDialog({
           description: values.description?.trim()
             ? values.description.trim()
             : undefined,
+          majorId: values.majorId ?? undefined,
           type: values.type?.trim() ? values.type.trim() : undefined,
           dueDate: values.dueDate || undefined,
           files: uploadedFiles.length ? uploadedFiles : undefined,
@@ -361,11 +397,6 @@ export function CreateProjectDialog({
               đồng. Bạn có thể cập nhật sau khi dự án được khởi tạo.
             </DialogDescription>
           </DialogHeader>
-          <div className="relative mt-4 flex flex-wrap gap-4 text-xs uppercase tracking-wider text-blue-100">
-            <span>
-              Tệp đính kèm: {filePreviews.length + imagePreviews.length}
-            </span>
-          </div>
         </div>
         <ScrollArea className="flex-1 min-h-0">
           <div className="px-4 py-0">
@@ -382,53 +413,87 @@ export function CreateProjectDialog({
                         <FormField
                           control={createProjectForm.control}
                           name="type"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                Chuyên ngành (nếu có)
-                              </FormLabel>
-                              <FormControl>
-                                <Select
-                                  onValueChange={(value) => {
-                                    field.onChange(
-                                      value === "none" ? "" : value
-                                    );
-                                  }}
-                                  value={field.value || "none"}
-                                  disabled={
-                                    isCreating ||
-                                    isUploadingAttachments ||
-                                    isLoadingMajors
-                                  }
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Chọn chuyên ngành" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="none">
-                                      Không chọn
-                                    </SelectItem>
-                                    {activeMajors.map((major) => {
-                                      const majorName = major.name ?? "";
-                                      if (!majorName) return null;
-                                      return (
-                                        <SelectItem
-                                          key={major.id}
-                                          value={majorName}
-                                        >
-                                          <div className="flex items-center gap-2">
-                                            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                                            <span>{majorName}</span>
-                                          </div>
-                                        </SelectItem>
+                          render={({ field }) => {
+                            const majorIdField =
+                              createProjectForm.getValues("majorId");
+                            const selectedMajor = activeMajors.find(
+                              (m) => m.id === majorIdField
+                            );
+                            const displayValue =
+                              selectedMajor?.name ?? field.value ?? "";
+                            const MajorIcon = displayValue
+                              ? majorIconMap.get(displayValue) || GraduationCap
+                              : null;
+
+                            return (
+                              <FormItem>
+                                <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  Chuyên ngành{" "}
+                                  <span className="text-red-500">*</span>
+                                </FormLabel>
+                                <FormControl>
+                                  <Select
+                                    onValueChange={(value) => {
+                                      const selectedMajor = activeMajors.find(
+                                        (m) => String(m.id) === value
                                       );
-                                    })}
-                                  </SelectContent>
-                                </Select>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                                      if (selectedMajor) {
+                                        field.onChange(
+                                          selectedMajor.name ?? ""
+                                        );
+                                        createProjectForm.setValue(
+                                          "majorId",
+                                          selectedMajor.id
+                                        );
+                                      }
+                                    }}
+                                    value={
+                                      majorIdField ? String(majorIdField) : ""
+                                    }
+                                    disabled={
+                                      isCreating ||
+                                      isUploadingAttachments ||
+                                      isLoadingMajors ||
+                                      (isDean && !!deanMajor?.name)
+                                    }
+                                  >
+                                    <SelectTrigger>
+                                      <div className="flex items-center gap-2">
+                                        {MajorIcon && (
+                                          <MajorIcon className="h-4 w-4 text-muted-foreground" />
+                                        )}
+                                        <SelectValue placeholder="Chọn chuyên ngành" />
+                                      </div>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {activeMajors.map((major) => {
+                                        const majorName = major.name ?? "";
+                                        if (!majorName) return null;
+
+                                        return (
+                                          <SelectItem
+                                            key={major.id}
+                                            value={String(major.id)}
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <span>{majorName}</span>
+                                            </div>
+                                          </SelectItem>
+                                        );
+                                      })}
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                {isDean && deanMajor?.name && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Chuyên ngành được tự động điền từ thông tin
+                                    của bạn
+                                  </p>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
                         />
                         <FormField
                           control={createProjectForm.control}

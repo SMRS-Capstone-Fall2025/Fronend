@@ -203,4 +203,3 @@ export const useAllCouncilsQuery = (
     staleTime: 30_000,
     ...options,
   });
-  

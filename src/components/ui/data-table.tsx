@@ -136,7 +136,11 @@ export function DataTable<T = unknown>({
                     column.headerClassName,
                     column.width && `w-[${column.width}]`
                   )}
-                  style={column.width ? { width: column.width } : undefined}
+                  style={
+                    column.width
+                      ? { width: column.width, minWidth: column.width }
+                      : undefined
+                  }
                 >
                   {column.header}
                 </TableHead>
@@ -162,7 +166,11 @@ export function DataTable<T = unknown>({
                     column.headerClassName,
                     column.width && `w-[${column.width}]`
                   )}
-                  style={column.width ? { width: column.width } : undefined}
+                  style={
+                    column.width
+                      ? { width: column.width, minWidth: column.width }
+                      : undefined
+                  }
                 >
                   {column.header}
                 </TableHead>
@@ -193,7 +201,15 @@ export function DataTable<T = unknown>({
                   onClick={() => onRowClick?.(row, index)}
                 >
                   {columns.map((column) => (
-                    <TableCell key={column.id} className={column.className}>
+                    <TableCell
+                      key={column.id}
+                      className={column.className}
+                      style={
+                        column.width
+                          ? { width: column.width, minWidth: column.width }
+                          : undefined
+                      }
+                    >
                       {renderCell(column, row, index)}
                     </TableCell>
                   ))}
